@@ -1,0 +1,20 @@
+package flefebvre.intellij.plugin.mantisbt.action;
+
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import flefebvre.intellij.plugin.mantisbt.ui.IssueListPanel;
+
+/**
+ * Created by IntelliJ IDEA.
+ * User: flefebvre
+ * Date: 13 avr. 2010
+ * Time: 20:41:31
+ * To change this template use File | Settings | File Templates.
+ */
+public class ExpandIssuesAction extends AnAction {
+    @Override
+    public void actionPerformed(AnActionEvent event) {
+        IssueListPanel issuesListPanel = ActionUtil.getIssueListPanel(event);
+        issuesListPanel.expandTree();
+    }
+}
