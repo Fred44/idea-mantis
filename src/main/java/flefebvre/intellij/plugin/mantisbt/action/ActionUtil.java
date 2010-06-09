@@ -1,5 +1,6 @@
 package flefebvre.intellij.plugin.mantisbt.action;
 
+import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
@@ -35,6 +36,16 @@ public class ActionUtil {
 
     private static <T> T getComponentInstanceOf(AnActionEvent event, Class<T> type) {
         final Project project = PlatformDataKeys.PROJECT.getData(event.getDataContext());
+
+        if (project == null) {
+            return null;
+        } else {
+            return (T) project.getPicoContainer().getComponentInstanceOfType(type);
+        }
+    }
+
+    public static <T> T getComponentInstanceOfOnCurProject(Class<T> type) {
+        final Project project = PlatformDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext());
 
         if (project == null) {
             return null;

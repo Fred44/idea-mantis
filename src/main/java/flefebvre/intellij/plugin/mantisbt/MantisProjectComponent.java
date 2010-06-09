@@ -1,13 +1,18 @@
 package flefebvre.intellij.plugin.mantisbt;
 
-import com.intellij.openapi.components.ProjectComponent;
+import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.ui.treeStructure.SimpleTree;
+import flefebvre.intellij.plugin.mantisbt.browser.MantisIssuesBrowserPanel;
+import flefebvre.intellij.plugin.mantisbt.browser.MantisStructure;
 import flefebvre.intellij.plugin.mantisbt.model.IssueListManager;
 import flefebvre.intellij.plugin.mantisbt.ui.PluginToolWindow;
 import org.apache.commons.logging.Log;
@@ -17,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.mantisbt.connect.MCException;
 
 import javax.swing.*;
+import javax.swing.tree.TreeSelectionModel;
 import java.net.MalformedURLException;
 
 /**
@@ -27,11 +33,16 @@ import java.net.MalformedURLException;
  * To change this template use File | Settings | File Templates.
  */
 
-public class MantisProjectComponent implements ProjectComponent, Configurable {
+public class MantisProjectComponent extends AbstractProjectComponent implements Configurable {
 
     private static Log log = LogFactory.getLog(MantisProjectComponent.class);
 
-    private Project project;
+    public static final String TOOL_WINDOW_ID = "Mantis issues";
+
+    private ToolWindow toolWindow;
+    private SimpleTree issueTree;
+    private MantisStructure myStructure;
+
     private ToolWindowManager toolWindowMgr;
     private PluginToolWindow pluginToolWindow;
 
@@ -47,7 +58,7 @@ public class MantisProjectComponent implements ProjectComponent, Configurable {
                                   @NotNull IssueListManager issueListMgr,
                                   @NotNull MantisSession session) {
 
-        this.project = project;
+        super(project);
         this.toolWindowMgr = toolWindowMgr;
         this.pluginToolWindow = pluginToolWindow;
 
@@ -55,18 +66,20 @@ public class MantisProjectComponent implements ProjectComponent, Configurable {
         this.issueListMgr = issueListMgr;
         this.session = session;
 
+        initPlugin();
+
         StartupManager.getInstance(project).registerPostStartupActivity(new Runnable() {
             public void run() {
                 log.info("Start: Project initializing");
-                initPlugin();
+                initToolWindow();
                 log.info("End: Project initialized");
             }
         });
     }
 
     private void initPlugin() {
-        pluginToolWindow.register(toolWindowMgr);
-        pluginToolWindow.initPanel();
+//        pluginToolWindow.register(toolWindowMgr);
+//        pluginToolWindow.initPanel();
 
         if (configMgr != null && configMgr.isConfigValid()) {
             try {
@@ -74,6 +87,8 @@ public class MantisProjectComponent implements ProjectComponent, Configurable {
                 session.open(configMgr.getConfig().getUrl(), configMgr.getConfig().getUsername(), configMgr.getConfig().getPassword());
 
                 log.info("Connected to Mantis [" + session.getVersion() + "]");
+
+                issueListMgr.init();
 
             } catch (MalformedURLException urle) {
                 Messages.showMessageDialog(
@@ -90,25 +105,6 @@ public class MantisProjectComponent implements ProjectComponent, Configurable {
                 session = null;
             }
         }
-    }
-
-    public void initComponent() {
-        log.debug("init MantisProjectComponent");
-
-    }
-
-    public void disposeComponent() {
-    }
-
-    @NotNull
-    public String getComponentName() {
-        return "MantisProjectComponent";
-    }
-
-    public void projectOpened() {
-    }
-
-    public void projectClosed() {
     }
 
     @Nls
@@ -146,5 +142,44 @@ public class MantisProjectComponent implements ProjectComponent, Configurable {
 
     public PluginToolWindow getPluginToolWindow() {
         return pluginToolWindow;
+    }
+
+    private void initToolWindow() {
+        initTree();
+        JPanel panel = new MantisIssuesBrowserPanel(myProject, issueTree);
+
+        final ToolWindowManager manager = ToolWindowManager.getInstance(myProject);
+//        toolWindow = manager.registerToolWindow(TOOL_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
+        toolWindow = manager.registerToolWindow(TOOL_WINDOW_ID, panel, ToolWindowAnchor.BOTTOM, myProject, true);
+//        toolWindow.getContentManager().getFactory().createContent(panel, "issues", false);
+        toolWindow.setIcon(MantisIcons.MANTIS_ICON);
+
+//        final ToolWindowManagerAdapter listener = new ToolWindowManagerAdapter() {
+//          boolean wasVisible = false;
+//
+//          @Override
+//          public void stateChanged() {
+//            if (toolWindow.isDisposed()) return;
+//            boolean visible = toolWindow.isVisible();
+//            if (!visible || visible == wasVisible) return;
+//            scheduleStructureUpdate();
+//            wasVisible = visible;
+//          }
+//        };
+//        manager.addToolWindowManagerListener(listener);
+//        Disposer.register(project, new Disposable() {
+//          public void dispose() {
+//            manager.removeToolWindowManagerListener(listener);
+//          }
+//        });
+    }
+
+    private void initTree() {
+        issueTree = new SimpleTree();
+        issueTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+    }
+
+    private void initStructure() {
+        myStructure = new MantisStructure(myProject, issueTree);
     }
 }

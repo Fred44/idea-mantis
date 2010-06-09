@@ -1,6 +1,7 @@
 package flefebvre.intellij.plugin.mantisbt.model;
 
-import org.mantisbt.connect.model.IIssue;
+import flefebvre.intellij.plugin.mantisbt.model.event.IssueListListener;
+import org.mantisbt.connect.model.IIssueHeader;
 
 import java.util.Collection;
 
@@ -13,11 +14,15 @@ import java.util.Collection;
  */
 public interface IssueListModel {
 
-    Collection<IIssue> getIssues();
+    Collection<IIssueHeader> getIssues();
 
-    void addIssues(Collection<IIssue> issues);
+    void addIssues(Collection<IIssueHeader> issues);
 
-    IIssue findIssue(Long id);
+    IIssueHeader findIssue(Long id);
 
     void clear();
+
+    void addIssueListListener(IssueListListener listener);
+
+    void removeIssueListListener(IssueListListener listener);
 }

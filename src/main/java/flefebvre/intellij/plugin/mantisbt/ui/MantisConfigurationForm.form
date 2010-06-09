@@ -116,6 +116,7 @@
           </grid>
         </constraints>
         <properties>
+          <background swing-color="Panel.background"/>
           <editable value="false"/>
           <enabled value="true"/>
           <lineWrap value="true"/>

@@ -4,7 +4,8 @@ import org.mantisbt.connect.IMCSession;
 import org.mantisbt.connect.MCException;
 import org.mantisbt.connect.axis.MCSession;
 import org.mantisbt.connect.model.IFilter;
-import org.mantisbt.connect.model.IIssue;
+import org.mantisbt.connect.model.IIssueHeader;
+import org.mantisbt.connect.model.IProject;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -33,6 +34,11 @@ public class MantisSessionImpl implements MantisSession {
         session = new MCSession(mantisUrl, username, pass);
     }
 
+    @Override
+    public List<IProject> getAvailableProjects() throws MCException {
+        return Arrays.asList(session.getAccessibleProjects());
+    }
+
     public String getVersion() throws MCException {
         return session.getVersion();
     }
@@ -41,11 +47,16 @@ public class MantisSessionImpl implements MantisSession {
         return Arrays.asList(session.getFilters(prj));
     }
 
-    public List<IIssue> getIssues(long filter) throws MCException {
-        return Arrays.asList(session.getIssues(prj, filter));
+    public List<IIssueHeader> getIssues(long filter) throws MCException {
+        return Arrays.asList(session.getIssueHeaders(prj, filter));
     }
 
     public boolean isConnected() {
         return session != null;
+    }
+
+    @Override
+    public void clear() {
+        session.flush();
     }
 }

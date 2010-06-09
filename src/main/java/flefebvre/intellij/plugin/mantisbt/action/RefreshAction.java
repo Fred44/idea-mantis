@@ -16,7 +16,6 @@ public class RefreshAction extends AnAction {
 
     @Override
     public void actionPerformed(AnActionEvent event) {
-
         IssueListPanel issuesPanel = ActionUtil.getIssueListPanel(event);
         if (issuesPanel != null) {
             issuesPanel.refresh();

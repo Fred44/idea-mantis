@@ -10,6 +10,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.SearchTextField;
 import flefebvre.intellij.plugin.mantisbt.model.IssueListManager;
 import flefebvre.intellij.plugin.mantisbt.model.IssueListModel;
+import flefebvre.intellij.plugin.mantisbt.model.MantisGroupBy;
+import flefebvre.intellij.plugin.mantisbt.ui.tree.IssueTreeBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.mantisbt.connect.MCException;
 import org.mantisbt.connect.model.IIssue;
@@ -35,7 +37,10 @@ public class IssueListPanel extends JPanel {
     private IssueListManager issueListMgr;
     private IssueListModel issueListModel;
 
+    private DefaultComboBoxModel filterListModel;
+
     private JTree issueTree;
+    private IssueTreeBuilder issueTreeBuilder;
     private IIssue selectedIssue;
 
     private SearchTextField searchField;
@@ -43,11 +48,14 @@ public class IssueListPanel extends JPanel {
     public IssueListPanel(@NotNull final Project project, IssueListManager issueListMgr, IssueListModel listModel) {
 
         this.project = project;
+        filterListModel = new DefaultComboBoxModel();
 
         this.issueListMgr = issueListMgr;
         this.issueListModel = listModel;
 
         this.issueListMgr.setListModel(this.issueListModel);
+
+        this.issueTreeBuilder = new IssueTreeBuilder(this.issueListModel);
 
         initUI();
 
@@ -88,15 +96,22 @@ public class IssueListPanel extends JPanel {
     }
 
     public void refresh() {
-        Task.Backgroundable task = new Task.Backgroundable(project, "Retrieving issues", false) {
+        Task.Backgroundable task = new Task.Backgroundable(project, "Refresh data", false) {
             @Override
             public void run(@NotNull final ProgressIndicator indicator) {
                 try {
 //                    getStatusBarPane().setInfoMessage("Loading issues...", false);
+                    issueListMgr.clearCache();
+                    issueListMgr.loadFilters();
                     issueListMgr.loadIssues();
                 } catch (MCException e) {
                     UiUtil.showError("Connection failure", "Server not responding! Try again.");
                 }
+            }
+
+            @Override
+            public void onSuccess() {
+                issueTreeBuilder.buildTree(issueTree);
             }
         };
         ProgressManager.getInstance().run(task);
@@ -124,5 +139,14 @@ public class IssueListPanel extends JPanel {
             component = actionToolbar.getComponent();
         }
         return component;
+    }
+
+    public ComboBoxModel getFilterListModel() {
+        return filterListModel;
+    }
+
+    public void setGroupBy(MantisGroupBy groupBy) {
+        issueTreeBuilder.setGroupBy(groupBy);
+        issueTreeBuilder.buildTree(this.issueTree);
     }
 }

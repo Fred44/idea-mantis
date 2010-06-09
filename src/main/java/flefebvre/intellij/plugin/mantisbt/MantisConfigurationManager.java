@@ -43,11 +43,7 @@ public class MantisConfigurationManager {
         this.project = project;
         this.config = config;
 
-        if (isConfigValid()) {
-            openConnection(config.getUrl(), config.getUsername(), config.getPassword());
-        }
-
-        cfgListeners = new ArrayList<ConfigurationListener>();
+        this.cfgListeners = new ArrayList<ConfigurationListener>();
     }
 
     public void openConnection(String url, String username, String pass) {
@@ -58,7 +54,7 @@ public class MantisConfigurationManager {
 
             log.info("Connected to Mantis [" + session.getVersion() + "]");
         } catch (MalformedURLException urle) {
-            UiUtil.showError("Connection failure", "URL is badly formed !");
+            UiUtil.showError("Incorrect configuration", "URL is badly formed !");
             this.session = null;
 
         } catch (MCException mce) {
@@ -109,7 +105,9 @@ public class MantisConfigurationManager {
             config.setPassword(formData.getPassword());
             config.setProject(formData.getProject() == null ? null : formData.getProject());
 
-            notifyConfigChange(oldCfg, config);
+            if (!oldCfg.equals(config)) {
+                notifyConfigChange(oldCfg, config);
+            }
         }
     }
 
@@ -173,6 +171,14 @@ public class MantisConfigurationManager {
         return isValid;
     }
 
+    public void addConfigurationListener(ConfigurationListener cfgListener) {
+        cfgListeners.add(cfgListener);
+    }
+
+    public void removeConfigurationListener(ConfigurationListener cfgListener) {
+        cfgListeners.remove(cfgListener);
+    }
+
     private void notifyConfigChange(RepositoryConfiguration oldCfg, RepositoryConfiguration newCfg) {
         for (ConfigurationListener cfgListener : cfgListeners) {
             cfgListener.configurationChange(oldCfg, newCfg);
@@ -180,6 +186,10 @@ public class MantisConfigurationManager {
     }
 
     public JComponent getFormPanel() {
+        if (isConfigValid()) {
+            openConnection(config.getUrl(), config.getUsername(), config.getPassword());
+        }
+
         formData = new RepositoryConfigurationData();
         if (config != null) {
             formData.setName(config.getName());

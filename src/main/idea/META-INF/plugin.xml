@@ -10,19 +10,27 @@
     </application-components>
 
     <project-components>
+        <!--<component>-->
+        <!--<implementation-class>flefebvre.intellij.plugin.mantisbt.MantisProjectComponent</implementation-class>-->
+        <!--</component>-->
         <component>
-            <implementation-class>flefebvre.intellij.plugin.mantisbt.MantisProjectComponent</implementation-class>
+            <implementation-class>flefebvre.intellij.plugin.mantisbt.settings.MantisSettingsComponent
+            </implementation-class>
+            <option name="workspace" value="true"/>
         </component>
         <component>
-            <implementation-class>flefebvre.intellij.plugin.mantisbt.PluginConfiguration</implementation-class>
+            <implementation-class>flefebvre.intellij.plugin.mantisbt.MantisManagerComponent</implementation-class>
         </component>
+        <component>
+            <implementation-class>flefebvre.intellij.plugin.mantisbt.browser.MantisIssuesBrowserComponent
+            </implementation-class>
+        </component>
+        <!--<component>-->
+        <!--<implementation-class>flefebvre.intellij.plugin.mantisbt.PluginConfiguration</implementation-class>-->
+        <!--</component>-->
     </project-components>
 
     <actions>
-        <action id="Mantis.MainToolWindow"
-                class="flefebvre.intellij.plugin.mantisbt.action.MainPluginWindowAction"
-                text="Show/Hide Mantis Window">
-        </action>
 
         <action id="Mantis.Refresh"
                 class="flefebvre.intellij.plugin.mantisbt.action.RefreshAction"
@@ -30,58 +38,41 @@
                 icon="/actions/sync.png"/>
 
         <action id="Mantis.FilterBy"
-                class="flefebvre.intellij.plugin.mantisbt.action.FilterByActionGroup"/>
+                class="flefebvre.intellij.plugin.mantisbt.action.FilterByAction"/>
         <action id="Mantis.GroupBy"
                 class="flefebvre.intellij.plugin.mantisbt.action.GroupByAction"
                 text="Group By"/>
-        <action id="Mantis.ExpandIssues"
-                class="flefebvre.intellij.plugin.mantisbt.action.ExpandIssuesAction"
-                text="Expand All Issues"
-                icon="/actions/expandall.png"/>
-        <action id="Mantis.CollapseIssues"
-                class="flefebvre.intellij.plugin.mantisbt.action.CollapseIssuesAction"
-                text="Collapse All Issues"
-                icon="/actions/collapseall.png"/>
 
-        <group id="MantisToolBar" popup="false">
-
+        <group id="FilterSortActionGroup" popup="false">
             <reference id="Mantis.FilterBy"/>
             <reference id="Mantis.GroupBy"/>
-            <!--<reference id="ThePlugin.JiraIssues.GroupSubtasks"/> -->
-            <reference id="Mantis.ExpandIssues"/>
-            <reference id="Mantis.CollapseIssues"/>
-            <separator/>
-            <!-- <reference id="ThePlugin.JiraIssues.OpenIssue"/>
-           <reference id="ThePlugin.JiraIssues.ViewIssue"/>
-           <separator/>
-           <reference id="ThePlugin.JiraIssues.CreateIssue"/>
-           <reference id="ThePlugin.JiraIssues.QuickSearch"/>-->
-            <reference id="Mantis.Refresh"/>
-            <!--<separator/>
-               <reference id="ThePlugin.ActiveTaskBar.ActivateJiraIssue"/>
-               <separator/>
-               <reference id="ThePlugin.HelpJIRA"/>
-               <separator/>-->
         </group>
+
+        <group id="IssueActionGroup" popup="false">
+            <reference id="Mantis.Refresh"/>
+        </group>
+
     </actions>
 
     <extensions defaultExtensionNs="com.intellij">
+        <projectConfigurable implementation="flefebvre.intellij.plugin.mantisbt.settings.MantisSettings" order="last"/>
+
         <projectService serviceInterface="flefebvre.intellij.plugin.mantisbt.MantisSession"
                         serviceImplementation="flefebvre.intellij.plugin.mantisbt.MantisSessionImpl"/>
 
-        <projectService serviceInterface="flefebvre.intellij.plugin.mantisbt.model.IssueListModel"
-                        serviceImplementation="flefebvre.intellij.plugin.mantisbt.model.IssueListModelImpl"/>
+        <!--<projectService serviceInterface="flefebvre.intellij.plugin.mantisbt.model.IssueListModel"-->
+        <!--serviceImplementation="flefebvre.intellij.plugin.mantisbt.model.IssueListModelImpl"/>-->
 
-        <projectService serviceInterface="flefebvre.intellij.plugin.mantisbt.model.IssueListManager"
-                        serviceImplementation="flefebvre.intellij.plugin.mantisbt.model.IssueListManagerImpl"/>
+        <!--<projectService serviceInterface="flefebvre.intellij.plugin.mantisbt.model.IssueListManager"-->
+        <!--serviceImplementation="flefebvre.intellij.plugin.mantisbt.model.IssueListManagerImpl"/>-->
 
-        <projectService serviceInterface="flefebvre.intellij.plugin.mantisbt.ui.IssueListPanel"
-                        serviceImplementation="flefebvre.intellij.plugin.mantisbt.ui.IssueListPanel"/>
+        <!--<projectService serviceInterface="flefebvre.intellij.plugin.mantisbt.ui.IssueListPanel"-->
+        <!--serviceImplementation="flefebvre.intellij.plugin.mantisbt.ui.IssueListPanel"/>-->
 
-        <projectService serviceInterface="flefebvre.intellij.plugin.mantisbt.MantisConfigurationManager"
-                        serviceImplementation="flefebvre.intellij.plugin.mantisbt.MantisConfigurationManager"/>
+        <!--<projectService serviceInterface="flefebvre.intellij.plugin.mantisbt.MantisConfigurationManager"-->
+        <!--serviceImplementation="flefebvre.intellij.plugin.mantisbt.MantisConfigurationManager"/>-->
 
-        <projectService serviceInterface="flefebvre.intellij.plugin.mantisbt.ui.PluginToolWindow"
-                        serviceImplementation="flefebvre.intellij.plugin.mantisbt.ui.PluginToolWindow"/>
+        <!--<projectService serviceInterface="flefebvre.intellij.plugin.mantisbt.ui.PluginToolWindow"-->
+        <!--serviceImplementation="flefebvre.intellij.plugin.mantisbt.ui.PluginToolWindow"/>-->
     </extensions>
 </idea-plugin>

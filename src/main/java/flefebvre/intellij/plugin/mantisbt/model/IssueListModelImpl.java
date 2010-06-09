@@ -1,6 +1,7 @@
 package flefebvre.intellij.plugin.mantisbt.model;
 
-import org.mantisbt.connect.model.IIssue;
+import flefebvre.intellij.plugin.mantisbt.model.event.IssueListListener;
+import org.mantisbt.connect.model.IIssueHeader;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -15,24 +16,27 @@ import java.util.Set;
  */
 public class IssueListModelImpl implements IssueListModel {
 
-    private Set<IIssue> issues;
+    private Set<IIssueHeader> issues;
+
+    private Set<IssueListListener> listeners;
 
     public IssueListModelImpl() {
-        this.issues = new HashSet<IIssue>();
+        this.issues = new HashSet<IIssueHeader>();
+        this.listeners = new HashSet<IssueListListener>();
     }
 
-    public Collection<IIssue> getIssues() {
+    public Collection<IIssueHeader> getIssues() {
         return issues;
     }
 
-    public void addIssues(Collection<IIssue> issues) {
+    public void addIssues(Collection<IIssueHeader> issues) {
         this.issues.addAll(issues);
     }
 
-    public IIssue findIssue(Long id) {
-        IIssue foundIssue = null;
+    public IIssueHeader findIssue(Long id) {
+        IIssueHeader foundIssue = null;
 
-        for (IIssue is : issues) {
+        for (IIssueHeader is : issues) {
             if (is.getId() == id) {
                 foundIssue = is;
                 break;
@@ -44,5 +48,15 @@ public class IssueListModelImpl implements IssueListModel {
 
     public void clear() {
         issues.clear();
+    }
+
+    @Override
+    public void addIssueListListener(IssueListListener listener) {
+        listeners.add(listener);
+    }
+
+    @Override
+    public void removeIssueListListener(IssueListListener listener) {
+        listeners.remove(listener);
     }
 }

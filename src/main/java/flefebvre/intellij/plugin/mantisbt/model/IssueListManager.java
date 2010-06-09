@@ -12,6 +12,8 @@ import org.mantisbt.connect.model.IFilter;
  */
 public interface IssueListManager {
 
+    void init() throws MCException;
+
     void loadIssues() throws MCException;
 
     IssueListModel getListModel();
@@ -21,4 +23,10 @@ public interface IssueListManager {
     void setActiveFilter(IFilter filter) throws MCException;
 
     IFilter getActiveFilter();
+
+    FilterListModel getFilterListModel();
+
+    void loadFilters() throws MCException;
+
+    void clearCache();
 }

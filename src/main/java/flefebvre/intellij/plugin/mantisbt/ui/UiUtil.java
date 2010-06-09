@@ -16,10 +16,7 @@ public class UiUtil {
     public static void showError(final String title, final String message) {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
-                Messages.showMessageDialog(
-                        message,
-                        title,
-                        Messages.getErrorIcon());
+                Messages.showErrorDialog(message, title);
             }
         });
     }
