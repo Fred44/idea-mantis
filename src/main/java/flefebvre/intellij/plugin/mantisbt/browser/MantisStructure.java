@@ -6,10 +6,14 @@ import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.ui.treeStructure.SimpleTreeBuilder;
 import com.intellij.ui.treeStructure.SimpleTreeStructure;
+import flefebvre.intellij.plugin.mantisbt.MantisManagerComponent;
+import flefebvre.intellij.plugin.mantisbt.MantisSession;
+import org.mantisbt.connect.MCException;
 import org.mantisbt.connect.model.IIssueHeader;
 
 import javax.swing.tree.DefaultTreeModel;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -23,11 +27,14 @@ import java.util.List;
 public class MantisStructure extends SimpleTreeStructure {
 
     private final Project myProject;
+    private final MantisManagerComponent mantisMgr;
+
     private final SimpleTreeBuilder myTreeBuilder;
     private final RootNode myRoot = new RootNode();
 
-    public MantisStructure(Project project, SimpleTree tree) {
+    public MantisStructure(Project project, MantisManagerComponent mantisMgr, SimpleTree tree) {
         this.myProject = project;
+        this.mantisMgr = mantisMgr;
 
         configureTree(tree);
 
@@ -47,12 +54,39 @@ public class MantisStructure extends SimpleTreeStructure {
         return myRoot;
     }
 
+    public void update() {
+        myRoot.updateIssues();
+    }
+
+    private void updateFrom(com.intellij.ui.treeStructure.SimpleNode node) {
+        myTreeBuilder.addSubtreeToUpdateByElement(node);
+    }
+
+    private void updateUpTo(com.intellij.ui.treeStructure.SimpleNode node) {
+        com.intellij.ui.treeStructure.SimpleNode each = node;
+        while (each != null) {
+            updateFrom(each);
+            each = each.getParent();
+        }
+    }
+
     public abstract class SimpleNode extends CachingSimpleNode {
         private SimpleNode myParent;
 
         public SimpleNode(SimpleNode parent) {
             super(MantisStructure.this.myProject, null);
             this.myParent = parent;
+        }
+
+        public <T extends SimpleNode> T findParent(Class<T> parentClass) {
+            SimpleNode node = this;
+            while (true) {
+                node = node.myParent;
+                if (node == null || parentClass.isInstance(node)) {
+                    //noinspection unchecked
+                    return (T) node;
+                }
+            }
         }
 
         @Override
@@ -70,6 +104,24 @@ public class MantisStructure extends SimpleTreeStructure {
         protected List<? extends SimpleNode> doGetChildren() {
             return Collections.emptyList();
         }
+
+        protected void childrenChanged() {
+            SimpleNode each = this;
+            while (each != null) {
+                each.cleanUpCache();
+                each = (SimpleNode) each.getParent();
+            }
+            updateUpTo(this);
+        }
+
+        @Override
+        protected void doUpdate() {
+            setName(getName());
+        }
+
+        protected void setName(String name) {
+            getTemplatePresentation().setPresentableText(name);
+        }
     }
 
     public abstract class GroupNode extends SimpleNode {
@@ -78,18 +130,32 @@ public class MantisStructure extends SimpleTreeStructure {
         }
     }
 
-    public class RootNode extends IssuesNode {
+    public class RootNode extends GroupNode {
+        private List<IssueNode> issueNodes = new ArrayList<IssueNode>();
 
         public RootNode() {
             super(null);
         }
-    }
 
-    public class IssuesNode extends GroupNode {
-        private List<IssueNode> issues = new ArrayList<IssueNode>();
+        protected List<? extends SimpleNode> doGetChildren() {
+            return issueNodes;
+        }
 
-        public IssuesNode(SimpleNode parent) {
-            super(parent);
+        public void updateIssues() {
+            MantisSession session = mantisMgr.getSession();
+            try {
+                Collection<IIssueHeader> issues = session.getIssues(4L);
+                List<IssueNode> newNodes = new ArrayList<IssueNode>(issues.size());
+
+                for (IIssueHeader issue : issues) {
+                    IssueNode issueNode = new IssueNode(this, issue);
+                    newNodes.add(issueNode);
+                }
+                issueNodes = newNodes;
+                childrenChanged();
+            } catch (MCException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
         }
     }
 
@@ -101,6 +167,10 @@ public class MantisStructure extends SimpleTreeStructure {
             super(parent);
             this.issue = issue;
         }
-    }
 
+        @Override
+        public String getName() {
+            return issue.getId() + " - " + issue.getSummary();
+        }
+    }
 }

@@ -2,7 +2,6 @@ package flefebvre.intellij.plugin.mantisbt.action;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import org.mantisbt.connect.MCException;
 import org.mantisbt.connect.model.IFilter;
 
 /**
@@ -27,10 +26,10 @@ public class ActivateFilterAction extends AnAction {
 
     @Override
     public void actionPerformed(AnActionEvent event) {
-        try {
-            ActionUtil.getIssueListManager(event).setActiveFilter(filter);
-        } catch (MCException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
+//        try {
+//            ActionUtil.getIssueListManager(event).setActiveFilter(filter);
+//        } catch (MCException e) {
+//            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+//        }
     }
 }

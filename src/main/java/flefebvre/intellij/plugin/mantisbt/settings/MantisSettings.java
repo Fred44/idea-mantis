@@ -24,7 +24,7 @@ public class MantisSettings implements SearchableConfigurable {
 
     public MantisSettings(Project project) {
         this.myProject = project;
-        myConfigurable = new MantisConfigurable(myProject) {
+        myConfigurable = new MantisConfigurable(myProject, MantisManagerComponent.getInstance(myProject).getAvailableProjects()) {
 
             @Override
             protected MantisProjectSettings getState() {

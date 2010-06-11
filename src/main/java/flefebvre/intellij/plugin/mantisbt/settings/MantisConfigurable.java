@@ -49,12 +49,13 @@ public abstract class MantisConfigurable implements Configurable {
     private Project myProject;
     private MantisSession localSession;
 
-    public MantisConfigurable(Project project) {
+    public MantisConfigurable(Project project, Collection<IProject> availableProjects) {
         myProject = project;
         localSession = new MantisSessionImpl();
 
         projectListModel = new DefaultComboBoxModel();
         projectCB.setModel(projectListModel);
+        loadProjectList(availableProjects);
         projectCB.setRenderer(new ProjectListCellRenderer());
         projectCB.addItemListener(new ItemListener() {
 

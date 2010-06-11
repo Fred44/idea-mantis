@@ -5,9 +5,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
 import flefebvre.intellij.plugin.mantisbt.MantisSession;
-import flefebvre.intellij.plugin.mantisbt.model.IssueListManager;
-import flefebvre.intellij.plugin.mantisbt.model.RepositoryConfiguration;
-import flefebvre.intellij.plugin.mantisbt.ui.IssueListPanel;
 
 /**
  * Created by IntelliJ IDEA.
@@ -18,21 +15,21 @@ import flefebvre.intellij.plugin.mantisbt.ui.IssueListPanel;
  */
 public class ActionUtil {
 
-    public static IssueListPanel getIssueListPanel(AnActionEvent event) {
-        return getComponentInstanceOf(event, IssueListPanel.class);
-    }
+//    public static IssueListPanel getIssueListPanel(AnActionEvent event) {
+//        return getComponentInstanceOf(event, IssueListPanel.class);
+//    }
 
-    public static IssueListManager getIssueListManager(AnActionEvent event) {
-        return getComponentInstanceOf(event, IssueListManager.class);
-    }
+//    public static IssueListManager getIssueListManager(AnActionEvent event) {
+//        return getComponentInstanceOf(event, IssueListManager.class);
+//    }
 
     public static MantisSession getMantisSession(AnActionEvent event) {
         return getComponentInstanceOf(event, MantisSession.class);
     }
 
-    public static RepositoryConfiguration getRepositoryConfig(AnActionEvent event) {
-        return getComponentInstanceOf(event, RepositoryConfiguration.class);
-    }
+//    public static RepositoryConfiguration getRepositoryConfig(AnActionEvent event) {
+//        return getComponentInstanceOf(event, RepositoryConfiguration.class);
+//    }
 
     private static <T> T getComponentInstanceOf(AnActionEvent event, Class<T> type) {
         final Project project = PlatformDataKeys.PROJECT.getData(event.getDataContext());

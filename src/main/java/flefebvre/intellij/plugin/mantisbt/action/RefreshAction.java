@@ -3,7 +3,6 @@ package flefebvre.intellij.plugin.mantisbt.action;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import flefebvre.intellij.plugin.mantisbt.MantisSession;
-import flefebvre.intellij.plugin.mantisbt.ui.IssueListPanel;
 
 /**
  * Created by IntelliJ IDEA.
@@ -16,10 +15,10 @@ public class RefreshAction extends AnAction {
 
     @Override
     public void actionPerformed(AnActionEvent event) {
-        IssueListPanel issuesPanel = ActionUtil.getIssueListPanel(event);
-        if (issuesPanel != null) {
-            issuesPanel.refresh();
-        }
+//        IssueListPanel issuesPanel = ActionUtil.getIssueListPanel(event);
+//        if (issuesPanel != null) {
+//            issuesPanel.refresh();
+//        }
     }
 
     @Override
