@@ -12,8 +12,11 @@ import com.intellij.ui.content.ContentManager;
 import flefebvre.intellij.plugin.mantisbt.browser.MantisIssuesBrowserPanel;
 import flefebvre.intellij.plugin.mantisbt.browser.MantisIssuesBrowserState;
 import org.jetbrains.annotations.NotNull;
+import org.mantisbt.connect.model.IFilter;
+import org.mantisbt.connect.model.IIssue;
 
 import javax.swing.*;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -33,14 +36,33 @@ public class MantisWindowComponent extends AbstractProjectComponent implements P
     private MantisIssuesBrowserState state;
 
     private ToolWindow toolWindow;
+    private MantisIssuesBrowserPanel browserPanel;
 
     public MantisWindowComponent(Project project, @NotNull MantisManagerComponent mantisMgr) {
         super(project);
         this.mantisMgr = mantisMgr;
 
         state = new MantisIssuesBrowserState();
+    }
 
-        StartupManager.getInstance(project).registerPostStartupActivity(new Runnable() {
+    @Override
+    public void initComponent() {
+        this.mantisMgr.addListener(new MantisManagerComponent.Listener() {
+
+            @Override
+            public void issuesReloaded(List<IIssue> issues) {
+                if (browserPanel != null) {
+                    browserPanel.scheduleStructureUpdate();
+                }
+            }
+
+            @Override
+            public void filterChanged(IFilter filter) {
+                //To change body of implemented methods use File | Settings | File Templates.
+            }
+        });
+
+        StartupManager.getInstance(myProject).registerPostStartupActivity(new Runnable() {
             public void run() {
                 initToolWindow();
             }
@@ -52,7 +74,8 @@ public class MantisWindowComponent extends AbstractProjectComponent implements P
         toolWindow = manager.registerToolWindow(TOOL_WINDOW_ID, false, ToolWindowAnchor.BOTTOM);
         toolWindow.setIcon(MantisIcons.MANTIS_ICON);
 
-        addTab(MantisIssuesBrowserPanel.TAB_NAME, new MantisIssuesBrowserPanel(myProject, mantisMgr), true, true, true);
+        browserPanel = new MantisIssuesBrowserPanel(myProject, mantisMgr);
+        addTab(MantisIssuesBrowserPanel.TAB_NAME, browserPanel, true, true, true);
     }
 
     public void addTab(String name,

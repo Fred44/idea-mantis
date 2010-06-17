@@ -5,9 +5,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.project.Project;
 import flefebvre.intellij.plugin.mantisbt.MantisManagerComponent;
-import flefebvre.intellij.plugin.mantisbt.MantisSession;
 import org.jetbrains.annotations.NotNull;
-import org.mantisbt.connect.MCException;
 import org.mantisbt.connect.model.IFilter;
 
 import javax.swing.*;
@@ -25,15 +23,15 @@ public class FilterMenu extends ComboBoxAction {
     private DefaultActionGroup myActionGroup;
     private JPanel myPanel;
 
-    private IFilter active;
-
     public final void update(final AnActionEvent e) {
         final Presentation presentation = e.getPresentation();
         final Project project = PlatformDataKeys.PROJECT.getData(e.getDataContext());
         if (project == null) return;
 
-        if (active != null) {
-            presentation.setText(" " + active.getName());
+        IFilter filter = MantisManagerComponent.getInstance(project).getActiveFilter();
+
+        if (filter != null) {
+            presentation.setText(" " + filter.getName());
         }
     }
 
@@ -42,15 +40,10 @@ public class FilterMenu extends ComboBoxAction {
     protected DefaultActionGroup createPopupActionGroup(JComponent jComponent) {
         myActionGroup = new DefaultActionGroup();
         final Project project = PlatformDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(jComponent));
-        final MantisSession session = MantisManagerComponent.getInstance(project).getSession();
-        Collection<IFilter> filters = null;
-        try {
-            filters = session.getFilters();
+        Collection<IFilter> filters = MantisManagerComponent.getInstance(project).getAvailableFilters();
 
-            for (IFilter filter : filters) {
-                myActionGroup.add(new ActivateFilterAction(filter));
-            }
-        } catch (MCException ignore) {
+        for (IFilter filter : filters) {
+            myActionGroup.add(new ActivateFilterAction(filter));
         }
 
         return myActionGroup;
@@ -82,7 +75,8 @@ public class FilterMenu extends ComboBoxAction {
 
         @Override
         public void actionPerformed(AnActionEvent anActionEvent) {
-            active = filter;
+            final Project project = PlatformDataKeys.PROJECT.getData(anActionEvent.getDataContext());
+            MantisManagerComponent.getInstance(project).setActiveFilter(filter);
         }
     }
 }

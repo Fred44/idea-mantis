@@ -2,7 +2,7 @@ package flefebvre.intellij.plugin.mantisbt;
 
 import org.mantisbt.connect.MCException;
 import org.mantisbt.connect.model.IFilter;
-import org.mantisbt.connect.model.IIssueHeader;
+import org.mantisbt.connect.model.IIssue;
 import org.mantisbt.connect.model.IProject;
 
 import java.net.MalformedURLException;
@@ -25,9 +25,11 @@ public interface MantisSession {
 
     String getVersion() throws MCException;
 
+    IFilter getFilter(long id) throws MCException;
+
     List<IFilter> getFilters() throws MCException;
 
-    List<IIssueHeader> getIssues(long filter) throws MCException;
+    List<IIssue> getIssues(long filter) throws MCException;
 
     boolean isConnected();
 

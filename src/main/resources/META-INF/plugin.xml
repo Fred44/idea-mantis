@@ -32,6 +32,10 @@
                 text="Refresh List"
                 icon="/actions/sync.png"/>
 
+        <action id="Mantis.openIssue"
+                class="flefebvre.intellij.plugin.mantisbt.action.OpenIssueAction"
+                text="Open"/>
+
         <action id="Mantis.FilterBy"
                 class="flefebvre.intellij.plugin.mantisbt.browser.FilterMenu"/>
         <action id="Mantis.GroupBy"
@@ -40,6 +44,10 @@
         <group id="FilterSortActionGroup" popup="false">
             <reference id="Mantis.FilterBy"/>
             <reference id="Mantis.GroupBy"/>
+        </group>
+
+        <group id="Mantis.oneIssueGroup" popup="false">
+            <reference id="Mantis.openIssue"/>
         </group>
 
         <group id="IssueActionGroup" popup="false">

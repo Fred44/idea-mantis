@@ -28,7 +28,7 @@ public class MantisSettings implements SearchableConfigurable {
 
             @Override
             protected MantisProjectSettings getState() {
-                return MantisManagerComponent.getInstance(myProject).getSettings();
+                return MantisSettingsComponent.getInstance(myProject).getState();
             }
         };
     }

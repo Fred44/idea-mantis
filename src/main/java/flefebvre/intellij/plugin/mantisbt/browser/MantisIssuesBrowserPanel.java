@@ -7,15 +7,20 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
-import com.intellij.ui.TreeUIHelper;
+import com.intellij.ui.PopupHandler;
+import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.ui.treeStructure.actions.CollapseAllAction;
 import com.intellij.ui.treeStructure.actions.ExpandAllAction;
-import com.intellij.util.ui.tree.TreeUtil;
 import flefebvre.intellij.plugin.mantisbt.MantisManagerComponent;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeSelectionModel;
+import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 
 /**
  * Created by IntelliJ IDEA.
@@ -44,7 +49,25 @@ public class MantisIssuesBrowserPanel extends SimpleToolWindowPanel {
         initTree();
 
         setToolbar(createToolBar());
-        setContent(new JScrollPane(issueTree));
+        setContent(ScrollPaneFactory.createScrollPane(issueTree));
+
+        issueTree.addMouseListener(new PopupHandler() {
+            public void invokePopup(final Component comp, final int x, final int y) {
+                final ActionManager actionManager = ActionManager.getInstance();
+                final String id = getMenuId(getSelectedNode());
+                if (id != null) {
+                    final ActionGroup actionGroup = (ActionGroup) actionManager.getAction(id);
+//                    if (actionGroup != null) {
+//                        actionManager.createActionPopupMenu("", actionGroup).getComponent().show(comp, x, y);
+//                    }
+                }
+            }
+
+            @Nullable
+            private String getMenuId(MantisStructure.SimpleNode node) {
+                return node.getMenuId();
+            }
+        });
     }
 
     private JComponent createToolBar() {
@@ -68,17 +91,24 @@ public class MantisIssuesBrowserPanel extends SimpleToolWindowPanel {
 
     public void initTree() {
         issueTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        final JLabel priorityLabel = new JLabel();
+        final JPanel panel = new JPanel(new BorderLayout());
+        panel.add(priorityLabel, BorderLayout.EAST);
+        final TreeCellRenderer baseRenderer = issueTree.getCellRenderer();
+        issueTree.setCellRenderer(new IssueTreeRenderer(baseRenderer));
+        issueTree.addComponentListener(new MyTreeComponentListener(issueTree));
 
-        TreeUIHelper uiHelper = TreeUIHelper.getInstance();
-        uiHelper.installToolTipHandler(issueTree);
-        uiHelper.installTreeSpeedSearch(issueTree);
-        TreeUtil.installActions(issueTree);
+
+//        TreeUIHelper uiHelper = TreeUIHelper.getInstance();
+//        uiHelper.installToolTipHandler(issueTree);
+//        uiHelper.installTreeSpeedSearch(issueTree);
+//        TreeUtil.installActions(issueTree);
 
         scheduleStructureUpdate();
         issueTree.requestFocus();
     }
 
-    private void scheduleStructureUpdate() {
+    public void scheduleStructureUpdate() {
         scheduleStructureRequest(new Runnable() {
             public void run() {
                 structure.update();
@@ -96,7 +126,34 @@ public class MantisIssuesBrowserPanel extends SimpleToolWindowPanel {
         }, ModalityState.defaultModalityState());
     }
 
+    private MantisStructure.SimpleNode getSelectedNode() {
+        return MantisStructure.getSelectedNode(issueTree);
+    }
+
     private void initStructure() {
         this.structure = new MantisStructure(project, mantisMgr, issueTree);
+    }
+
+    private class MyTreeComponentListener extends ComponentAdapter {
+        private JTree tree;
+
+
+        public MyTreeComponentListener(JTree tree) {
+            this.tree = tree;
+        }
+
+        public void componentResized(ComponentEvent e) {
+            if (tree.isVisible()) {
+                registerUI();
+            }
+        }
+
+        private void registerUI() {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    tree.setUI(new BasicWideNodeTreeUI());
+                }
+            });
+        }
     }
 }

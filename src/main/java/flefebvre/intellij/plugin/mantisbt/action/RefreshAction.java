@@ -2,7 +2,9 @@ package flefebvre.intellij.plugin.mantisbt.action;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import flefebvre.intellij.plugin.mantisbt.MantisSession;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.project.Project;
+import flefebvre.intellij.plugin.mantisbt.MantisManagerComponent;
 
 /**
  * Created by IntelliJ IDEA.
@@ -15,16 +17,14 @@ public class RefreshAction extends AnAction {
 
     @Override
     public void actionPerformed(AnActionEvent event) {
-//        IssueListPanel issuesPanel = ActionUtil.getIssueListPanel(event);
-//        if (issuesPanel != null) {
-//            issuesPanel.refresh();
-//        }
+        final Project project = PlatformDataKeys.PROJECT.getData(event.getDataContext());
+        MantisManagerComponent.getInstance(project).update();
     }
 
     @Override
     public void update(AnActionEvent e) {
         super.update(e);
-        MantisSession sess = ActionUtil.getMantisSession(e);
-        e.getPresentation().setEnabled(sess != null && sess.isConnected());
+//        MantisSession sess = ActionUtil.getMantisSession(e);
+//        e.getPresentation().setEnabled(sess != null && sess.isConnected());
     }
 }

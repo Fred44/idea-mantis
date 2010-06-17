@@ -1,21 +1,26 @@
 package flefebvre.intellij.plugin.mantisbt.browser;
 
+import com.intellij.ide.projectView.PresentationData;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.ui.treeStructure.SimpleTreeBuilder;
 import com.intellij.ui.treeStructure.SimpleTreeStructure;
+import flefebvre.intellij.plugin.mantisbt.MantisIcons;
 import flefebvre.intellij.plugin.mantisbt.MantisManagerComponent;
-import flefebvre.intellij.plugin.mantisbt.MantisSession;
-import org.mantisbt.connect.MCException;
-import org.mantisbt.connect.model.IIssueHeader;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.mantisbt.connect.model.IIssue;
 
 import javax.swing.tree.DefaultTreeModel;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import javax.swing.tree.TreePath;
+import java.awt.event.InputEvent;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -70,6 +75,15 @@ public class MantisStructure extends SimpleTreeStructure {
         }
     }
 
+    public static SimpleNode getSelectedNode(SimpleTree tree) {
+        TreePath treePath = tree.getSelectionPath();
+        if (treePath != null) {
+            return (SimpleNode) tree.getNodeFor(treePath);
+        } else {
+            return null;
+        }
+    }
+
     public abstract class SimpleNode extends CachingSimpleNode {
         private SimpleNode myParent;
 
@@ -105,6 +119,18 @@ public class MantisStructure extends SimpleTreeStructure {
             return Collections.emptyList();
         }
 
+        @Nullable
+        @NonNls
+        String getActionId() {
+            return null;
+        }
+
+        @Nullable
+        @NonNls
+        String getMenuId() {
+            return null;
+        }
+
         protected void childrenChanged() {
             SimpleNode each = this;
             while (each != null) {
@@ -122,11 +148,22 @@ public class MantisStructure extends SimpleTreeStructure {
         protected void setName(String name) {
             getTemplatePresentation().setPresentableText(name);
         }
+
+        public void handleDoubleClickOrEnter(SimpleTree tree, InputEvent inputEvent) {
+            String actionId = getActionId();
+            if (actionId != null) {
+//                MavenUIUtil.executeAction(actionId, inputEvent);
+            }
+        }
     }
 
     public abstract class GroupNode extends SimpleNode {
         public GroupNode(SimpleNode parent) {
             super(parent);
+        }
+
+        protected void sort(List<IssueNode> list) {
+            Collections.sort(list, NODE_COMPARATOR);
         }
     }
 
@@ -142,35 +179,103 @@ public class MantisStructure extends SimpleTreeStructure {
         }
 
         public void updateIssues() {
-            MantisSession session = mantisMgr.getSession();
-            try {
-                Collection<IIssueHeader> issues = session.getIssues(4L);
-                List<IssueNode> newNodes = new ArrayList<IssueNode>(issues.size());
+            Collection<IIssue> issues = mantisMgr.getIssues();
+            List<IssueNode> newNodes = new ArrayList<IssueNode>();
 
-                for (IIssueHeader issue : issues) {
-                    IssueNode issueNode = new IssueNode(this, issue);
+            if (issues != null) {
+                for (IIssue issue : issues) {
+                    IssueNode issueNode = findOrCreateNodeFor(issue);
                     newNodes.add(issueNode);
                 }
-                issueNodes = newNodes;
-                childrenChanged();
-            } catch (MCException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
+            issueNodes = newNodes;
+            sort(issueNodes);
+            childrenChanged();
+        }
+
+        private IssueNode findOrCreateNodeFor(IIssue issue) {
+            for (IssueNode each : issueNodes) {
+                if (each.getIssue().getId() == issue.getId()) return each;
+            }
+            return new IssueNode(this, issue);
         }
     }
 
     public class IssueNode extends SimpleNode {
 
-        private final IIssueHeader issue;
+        private final DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        private final IIssue issue;
 
-        public IssueNode(SimpleNode parent, IIssueHeader issue) {
+        public IssueNode(SimpleNode parent, IIssue issue) {
             super(parent);
             this.issue = issue;
+            getTemplatePresentation().setIcons(MantisIcons.TASK_ICON);
+        }
+
+        public IIssue getIssue() {
+            return issue;
+        }
+
+        @NotNull
+        @Override
+        protected PresentationData createPresentation() {
+            return new IssueNodePresentationData();
         }
 
         @Override
-        public String getName() {
-            return issue.getId() + " - " + issue.getSummary();
+        protected void update(PresentationData presentation) {
+            IssueNodePresentationData pData = (IssueNodePresentationData) presentation;
+
+            if (issue.getStatus().getId() == 80 || issue.getStatus().getId() == 90) {
+                pData.setIcons(MantisIcons.TASK_COMPLETED_ICON);
+            } else {
+                pData.setIcons(MantisIcons.TASK_ICON);
+            }
+            pData.setPresentableText("[" + issue.getId() + "]  " + issue.getSummary());
+
+            pData.setAuthor(issue.getReporter().getName());
+
+            pData.setStatus(issue.getStatus().getName());
+
+            if (issue.getNotes() != null && issue.getNotes().length > 0) {
+                pData.setNotesIcon(MantisIcons.COMMENT_ICON);
+                pData.setNotesTxt("(" + issue.getNotes().length + ")");
+            } else {
+                pData.setNotesIcon(null);
+                pData.setNotesTxt("");
+            }
+
+            if (issue.getPriority().getId() == 10) {
+                pData.setPriorityIcon(MantisIcons.PRIORITY_NONE_ICON);
+            } else if (issue.getPriority().getId() == 20) {
+                pData.setPriorityIcon(MantisIcons.PRIORITY_LOW_ICON);
+            } else if (issue.getPriority().getId() == 30) {
+                pData.setPriorityIcon(MantisIcons.PRIORITY_NORMAL_ICON);
+            } else if (issue.getPriority().getId() == 40) {
+                pData.setPriorityIcon(MantisIcons.PRIORITY_HIGH_ICON);
+            } else if (issue.getPriority().getId() == 50) {
+                pData.setPriorityIcon(MantisIcons.PRIORITY_URGENT_ICON);
+            } else if (issue.getPriority().getId() == 60) {
+                pData.setPriorityIcon(MantisIcons.PRIORITY_IMMEDIATE_ICON);
+            }
+
+            pData.setLastUpdateDate(df.format(issue.getDateLastUpdated()));
+        }
+
+        @Override
+        String getActionId() {
+            return "Mantis.openIssue";
+        }
+
+        @Override
+        String getMenuId() {
+            return "Mantis.oneIssueGroup";
         }
     }
+
+    private static final Comparator<IssueNode> NODE_COMPARATOR = new Comparator<IssueNode>() {
+        public int compare(IssueNode o1, IssueNode o2) {
+            return -Comparing.compare(o1.getIssue().getDateLastUpdated(), o2.getIssue().getDateLastUpdated());
+        }
+    };
 }

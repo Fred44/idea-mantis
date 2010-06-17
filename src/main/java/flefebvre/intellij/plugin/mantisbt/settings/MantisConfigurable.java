@@ -43,6 +43,7 @@ public abstract class MantisConfigurable implements Configurable {
     private JTextArea projectDescField;
     private JPanel rootPanel;
     private JButton openBt;
+    private JLabel logo;
 
     private DefaultComboBoxModel projectListModel;
 
@@ -52,6 +53,9 @@ public abstract class MantisConfigurable implements Configurable {
     public MantisConfigurable(Project project, Collection<IProject> availableProjects) {
         myProject = project;
         localSession = new MantisSessionImpl();
+
+        projectDescField.setBorder(BorderFactory.createEmptyBorder());
+        projectDescField.setOpaque(false);
 
         projectListModel = new DefaultComboBoxModel();
         projectCB.setModel(projectListModel);

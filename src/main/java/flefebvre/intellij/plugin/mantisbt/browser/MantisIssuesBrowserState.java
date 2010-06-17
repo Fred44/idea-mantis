@@ -1,7 +1,6 @@
 package flefebvre.intellij.plugin.mantisbt.browser;
 
 import flefebvre.intellij.plugin.mantisbt.model.MantisGroupBy;
-import org.mantisbt.connect.model.IFilter;
 
 /**
  * Created by IntelliJ IDEA.
@@ -11,8 +10,6 @@ import org.mantisbt.connect.model.IFilter;
  * To change this template use File | Settings | File Templates.
  */
 public class MantisIssuesBrowserState {
-
-    public IFilter activeFilter;
 
     public MantisGroupBy groupBy;
 }
